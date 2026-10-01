@@ -1291,7 +1291,7 @@ Never use:
 prisma db push
 ```
 
-for normal development schema changes.
+on any branch, including development.
 
 Use migrations:
 
@@ -1444,8 +1444,33 @@ Tests should mock Prisma and should not require a production database.
 
 ---
 
+### Deployment
+
+Property Pulse deploys to Vercel from `main`.
+
+| Setting | Value |
+| --- | --- |
+| Build Command (Vercel override) | `npm run vercel-build` |
+| `vercel-build` script | `prisma migrate deploy && next build` |
+| Install | Default `npm install`; `postinstall` runs `prisma generate` |
+
+Environment variables (Vercel → Settings → Environment Variables):
+
+| Variable | Value | Environments |
+| --- | --- | --- |
+| `DATABASE_URL` | Neon **production** branch, pooled (`-pooler` host) | Production only |
+| `DIRECT_URL` | Neon **production** branch, direct (no `-pooler`) | Production only |
+
+- Every production deploy applies pending committed migrations to the production branch with `prisma migrate deploy`. This is the only way the production schema changes.
+- After changing the database variables, check the build log. The `Datasource "db"` line must show the production host, not the development host (`ep-lucky-snow-arflqks7`).
+- Preview deployments have no database variables, so they currently fail at install (`postinstall` needs `DIRECT_URL`). This is intentional, so no preview build can reach production. How previews should work is still undecided (see Open Questions).
+- Not set up yet: keeping production credentials off local machines (check `.env.production`), and a Postgres role for the app with data-only privileges on production.
+
+---
+
 ## 11. Open Questions
 
+- How should Vercel preview deployments handle the database: skip the database steps, use the Neon development branch, or use a Neon branch per preview?
 - Should owners require admin approval before their first listing is published?
 - Should renters be able to message owners directly, or should all communication begin as inquiries?
 - Should properties support multiple rental units under one building?
