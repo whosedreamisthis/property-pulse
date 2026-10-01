@@ -73,6 +73,7 @@ Use the established project structure:
 - Use Tailwind CSS for styling.
 - Use shadcn/ui components where applicable.
 - Do not use inline styles.
+- All buttons use `cursor: pointer`. Tailwind v4 resets buttons to `cursor: default`, so a base rule in `src/app/globals.css` restores the pointer for every enabled `button` and `[role="button"]`. Don't add `cursor-pointer` per button, and don't remove the global rule.
 - Follow the visual system defined in `@context/project-overview.md`.
 - Maintain responsive and accessible UI.
 - Provide appropriate loading, empty, error, and success states.

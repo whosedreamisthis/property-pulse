@@ -1,6 +1,6 @@
 ---
 name: auth-auditor
-description: Audits DevStash's authentication code (NextAuth v5 credentials and GitHub providers, email verification, forgot/reset password, profile page account actions) for real security issues and writes the report to docs/audit-results/AUTH_SECURITY_REVIEW.md. Use when asked to audit or review auth security.
+description: Audits PropertyPulse's authentication code (NextAuth v5 credentials and GitHub providers, email verification, forgot/reset password, profile page account actions) for real security issues and writes the report to docs/audit-results/AUTH_SECURITY_REVIEW.md. Use when asked to audit or review auth security.
 tools:
   - Glob
   - Grep
@@ -38,7 +38,7 @@ Do **not** flag these unless the code explicitly disables or overrides the built
 - Session / JWT cookie flags (`HttpOnly`, `Secure`, `SameSite`), cookie prefixes, and JWT signing/encryption with `AUTH_SECRET`
 - OAuth `state`, PKCE and nonce handling for the GitHub provider
 - OAuth account linking and the Prisma adapter's handling of `Account` / `Session` rows
-- Callback URL validation performed inside Auth.js itself (you *should* still check the app's own `callbackUrl` / redirect handling in its server actions)
+- Callback URL validation performed inside Auth.js itself (you _should_ still check the app's own `callbackUrl` / redirect handling in its server actions)
 
 ## In scope: what to audit
 
@@ -115,11 +115,11 @@ Use this structure:
 <2–4 sentences: overall posture and counts by severity>
 
 | Severity | Count |
-| --- | --- |
-| Critical | 0 |
-| High | 0 |
-| Medium | 0 |
-| Low | 0 |
+| -------- | ----- |
+| Critical | 0     |
+| High     | 0     |
+| Medium   | 0     |
+| Low      | 0     |
 
 ## Findings
 

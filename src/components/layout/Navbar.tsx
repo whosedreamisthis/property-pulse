@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { auth, signIn, signOut } from "@/auth";
 
-export default function Navbar() {
+export default async function Navbar() {
+  const session = await auth();
+
   return (
     <header className="border-b border-primary-500 bg-primary-700">
       <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -18,12 +21,36 @@ export default function Navbar() {
           <span className="text-2xl font-bold text-white">PropertyPulse</span>
         </Link>
 
-        <button
-          type="button"
-          className="rounded-md bg-white px-4 py-2 text-sm font-semibold text-primary-700 hover:bg-primary-50"
-        >
-          Sign In
-        </button>
+        {/* Minimal session toggle; the avatar menu replaces this in auth phase 3. */}
+        {session?.user ? (
+          <form
+            action={async () => {
+              "use server";
+              await signOut({ redirectTo: "/" });
+            }}
+          >
+            <button
+              type="submit"
+              className="rounded-md bg-white px-4 py-2 text-sm font-semibold text-primary-700 hover:bg-primary-50"
+            >
+              Sign Out
+            </button>
+          </form>
+        ) : (
+          <form
+            action={async () => {
+              "use server";
+              await signIn(undefined, { redirectTo: "/dashboard" });
+            }}
+          >
+            <button
+              type="submit"
+              className="rounded-md bg-white px-4 py-2 text-sm font-semibold text-primary-700 hover:bg-primary-50"
+            >
+              Sign In
+            </button>
+          </form>
+        )}
       </nav>
     </header>
   );
