@@ -1036,42 +1036,33 @@ Use blue sparingly for actions and emphasis. Keep most surfaces white and gray s
 
 ```text
 ┌────────────────────────────────────────────────────────────────┐
-│ LOGO                 Browse Properties     Sign In   [List]   │
+│ (🏠) PropertyPulse                                  [ Sign In ] │  ← blue navbar
 ├────────────────────────────────────────────────────────────────┤
 │                                                                │
-│             Find a place you'll love to live                  │
-│       Search homes, apartments, condos, and more               │
+│                  Find The Perfect Rental                       │  ← blue hero
+│     Discover the perfect property that suits your needs.       │
 │                                                                │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │ 🔍 Search by city or location                            │  │
-│  │                                                          │  │
-│  │ [ City ] [ Rent ] [ Beds ] [ Property Type ] [ Search ] │  │
-│  └──────────────────────────────────────────────────────────┘  │
+│   [ Enter Location (City, State, Zip, etc) ] [ All ▾ ] [Search]│
 │                                                                │
 ├────────────────────────────────────────────────────────────────┤
-│                                                                │
-│ Featured Property                                              │
-│ ┌────────────────────────┐  ┌────────────────────────────────┐ │
-│ │                        │  │ Modern Downtown Apartment      │ │
-│ │      LARGE IMAGE       │  │ Nanaimo, BC                    │ │
-│ │                        │  │                                │ │
-│ │                        │  │ $2,450 / month                 │ │
-│ └────────────────────────┘  │ 2 beds · 2 baths · 1,050 sq ft │ │
-│                             │                                │ │
-│                             │ [ View Property ]               │ │
-│                             └────────────────────────────────┘ │
-│                                                                │
+│ ┌───────────────────────────┐  ┌─────────────────────────────┐ │
+│ │ For Renters               │  │ For Property Owners         │ │
+│ │ Find your dream rental... │  │ List your properties...     │ │
+│ │ [ Browse Properties ]     │  │ [ Add Property ]            │ │
+│ └───────────────────────────┘  └─────────────────────────────┘ │
+│        (gray surface)               (pale-blue surface)        │
 ├────────────────────────────────────────────────────────────────┤
-│ Browse Available Properties                                    │
-│                                                                │
-│ ┌───────────┐  ┌───────────┐  ┌───────────┐                   │
-│ │   IMAGE   │  │   IMAGE   │  │   IMAGE   │                   │
-│ │           │  │           │  │           │                   │
-│ │ Property  │  │ Property  │  │ Property  │                   │
-│ │ $2,300/mo │  │ $2,700/mo │  │ $3,100/mo │                   │
-│ └───────────┘  └───────────┘  └───────────┘                   │
+│                    Featured Properties                         │  ← ice-blue section
+│ ┌──────────┬────────────────┐  ┌──────────┬────────────────┐   │
+│ │ [$/mo]   │ Property Title │  │ [$/mo]   │ Property Title │   │
+│ │  IMAGE   │ Property Type  │  │  IMAGE   │ Property Type  │   │
+│ │          │ Location       │  │          │ Location       │   │
+│ │          │ beds · baths   │  │          │ beds · baths   │   │
+│ └──────────┴────────────────┘  └──────────┴────────────────┘   │
 └────────────────────────────────────────────────────────────────┘
 ```
+
+Reference screenshot: `context/screenshots/homepage.jpg`. Cards and the search row stack vertically on small screens.
 
 ### Property cards
 

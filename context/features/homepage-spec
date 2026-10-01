@@ -1,0 +1,7 @@
+# PropertyPulse Homepage Mockup Spec
+
+Create a marketing homepage for PropertyPulse - a rental property app.
+use the screenshot - context/screenshots/homepage.jpg
+instead of a google and github icons, use a sign in page. we will implement nextauth next, we just want a homepage button for now on that side. the whole page should not be interactive yet, just add the visual ui.
+
+look at project-overview.md for color palette.
