@@ -1,0 +1,191 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  RENTER
+  OWNER
+  ADMIN
+}
+
+enum PropertyType {
+  APARTMENT
+  STUDIO
+  CONDO
+  HOUSE
+  CABIN_OR_COTTAGE
+  LOFT
+  ROOM
+  OTHER
+}
+
+enum PropertyStatus {
+  DRAFT
+  PUBLISHED
+  UNPUBLISHED
+}
+
+enum InquiryStatus {
+  NEW
+  CONTACTED
+  ARCHIVED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          Role      @default(RENTER)
+
+  properties Property[]
+  favorites  Favorite[]
+  inquiries  Inquiry[]
+
+  accounts Account[]
+  sessions Session[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([role])
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+model Property {
+  id      String @id @default(cuid())
+  ownerId String
+
+  title       String
+  description String
+
+  address    String
+  city       String
+  province   String
+  postalCode String
+  country    String @default("Canada")
+
+  monthlyRent     Decimal  @db.Decimal(10, 2)
+  securityDeposit Decimal? @db.Decimal(10, 2)
+
+  bedrooms   Int
+  bathrooms  Decimal @db.Decimal(4, 1)
+  squareFeet Int?
+
+  propertyType PropertyType
+  status       PropertyStatus @default(DRAFT)
+  featured     Boolean        @default(false)
+
+  furnished        Boolean @default(false)
+  petsAllowed      Boolean @default(false)
+  parkingAvailable Boolean @default(false)
+
+  leaseDurationMonths Int?
+  availableDate       DateTime?
+
+  amenities String[]
+
+  owner     User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  images    PropertyImage[]
+  favorites Favorite[]
+  inquiries Inquiry[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId])
+  @@index([status])
+  @@index([city])
+  @@index([propertyType])
+  @@index([monthlyRent])
+  @@index([bedrooms])
+  @@index([featured])
+  @@index([availableDate])
+}
+
+model PropertyImage {
+  id         String  @id @default(cuid())
+  propertyId String
+  url        String
+  alt        String?
+  sortOrder  Int     @default(0)
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+}
+
+model Favorite {
+  userId     String
+  propertyId String
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@id([userId, propertyId])
+  @@index([propertyId])
+}
+
+model Inquiry {
+  id         String @id @default(cuid())
+  propertyId String
+  renterId   String
+
+  message String
+  phone   String?
+  status  InquiryStatus @default(NEW)
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  renter   User     @relation(fields: [renterId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([propertyId])
+  @@index([renterId])
+  @@index([status])
+}

@@ -88,8 +88,12 @@ Use the established project structure:
 ## Database
 
 - Use Prisma ORM for database operations.
-- Use Prisma migrations for schema changes.
-- Use `prisma migrate dev` during development; do not use `db push` for normal schema changes.
+- Use Prisma migrations for every schema change.
+- Never use `prisma db push`, on any branch. It changes the schema without creating a migration, so production and development drift apart.
+- Never use `prisma migrate reset` without explicit approval. It drops all data on the target database.
+- Use `prisma migrate dev` only against the Neon development branch.
+- Production schema changes only through `prisma migrate deploy` in the deployment pipeline, applying migrations already committed to the repo. Never change the production schema directly, whether by SQL, the Neon Console, Prisma Studio, or `db push`.
+- `.claude/settings.json` denies `prisma db push` and `prisma migrate reset` for Claude Code. Don't remove these rules.
 - Run `prisma migrate status` before committing to verify migration state.
 - Production deployments must run `prisma migrate deploy` before the application starts.
 - Regenerate Prisma Client when required after schema changes.
