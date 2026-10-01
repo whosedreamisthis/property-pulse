@@ -121,15 +121,18 @@ Each property should include:
 
 Property types:
 
-| Type      | Example               |
-| --------- | --------------------- |
-| Apartment | Downtown apartment    |
-| House     | Single-family house   |
-| Condo     | Condominium unit      |
-| Townhouse | Multi-level townhouse |
-| Basement  | Basement suite        |
-| Room      | Private room          |
-| Other     | Other rental type     |
+| Type             | Example                  |
+| ---------------- | ------------------------ |
+| Apartment        | Downtown apartment       |
+| Studio           | Open-plan studio unit    |
+| Condo            | Condominium unit         |
+| House            | Single-family house      |
+| Cabin or Cottage | Lakeside or mountain cabin |
+| Loft             | Converted warehouse loft |
+| Room             | Private room             |
+| Other            | Other rental type        |
+
+These match the `PropertyType` enum in section 7 and the homepage search dropdown (`src/components/search/SearchBar.tsx`).
 
 ---
 
@@ -714,10 +717,11 @@ enum Role {
 
 enum PropertyType {
   APARTMENT
-  HOUSE
+  STUDIO
   CONDO
-  TOWNHOUSE
-  BASEMENT
+  HOUSE
+  CABIN_OR_COTTAGE
+  LOFT
   ROOM
   OTHER
 }
