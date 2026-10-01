@@ -36,6 +36,19 @@ We will create a new branch for every feature/fix. Name branch **feature/[featur
 - Keep commits focused (one feature/fix per commit)
 - Never put "Generated With Claude" or similar notion in the commit messages
 
+## Checkpoints
+
+These rules override any skill instructions, including `/feature complete`. Even if a skill says to commit, merge, push or delete a branch, stop and ask first.
+
+Before acting, say what you're about to do and wait for approval for:
+
+- Structural or config changes (moving folders, `tsconfig.json`, `next.config.ts`, path aliases)
+- New dependencies or downloaded files (images, assets)
+- Edits to spec or context docs (`project-overview.md`, `coding-standards.md`) beyond `current-feature.md`
+- Commits, merges, pushes and branch deletions, each as a separate approval
+
+Keep tool calls small and single-purpose. Don't chain unrelated commands or batch many file writes into one step, so each permission prompt is easy to judge. Don't re-run checks I've already confirmed ("it's working").
+
 ## When Stuck
 
 - If something isn't working after 2-3 attempts, stop and explain the issue
