@@ -47,6 +47,8 @@ Before acting, say what you're about to do and wait for approval for:
 - Edits to spec or context docs (`project-overview.md`, `coding-standards.md`) beyond `current-feature.md`
 - Commits, merges, pushes and branch deletions, each as a separate approval
 
+For an approved step that's a single command (commit, merge, push, branch delete, install), don't ask in chat first. Just run it; the permission prompt is the approval. Ask in chat only when there's a real decision to make (options, scope, what to include).
+
 Keep tool calls small and single-purpose. Don't chain unrelated commands or batch many file writes into one step, so each permission prompt is easy to judge. Don't re-run checks I've already confirmed ("it's working").
 
 ## When Stuck
