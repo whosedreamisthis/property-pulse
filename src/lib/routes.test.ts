@@ -1,5 +1,40 @@
 import { describe, expect, it } from "vitest";
-import { getRequiredRole, resolveRouteAccess } from "@/lib/routes";
+import {
+  getRequiredRole,
+  getSafeCallbackUrl,
+  resolveRouteAccess,
+} from "@/lib/routes";
+
+describe("getSafeCallbackUrl", () => {
+  it("defaults to /dashboard when there is no callback", () => {
+    expect(getSafeCallbackUrl(undefined)).toBe("/dashboard");
+    expect(getSafeCallbackUrl("")).toBe("/dashboard");
+  });
+
+  it("keeps relative paths with their query and hash", () => {
+    expect(getSafeCallbackUrl("/admin")).toBe("/admin");
+    expect(getSafeCallbackUrl("/properties?city=nanaimo#map")).toBe(
+      "/properties?city=nanaimo#map",
+    );
+  });
+
+  it("reduces an absolute URL (as sent by the proxy) to its path", () => {
+    expect(getSafeCallbackUrl("http://localhost:3000/admin/users")).toBe(
+      "/admin/users",
+    );
+  });
+
+  it("never redirects off-site", () => {
+    expect(getSafeCallbackUrl("https://evil.example/phish")).toBe("/phish");
+    expect(getSafeCallbackUrl("//evil.example/phish")).toBe("/dashboard");
+    expect(getSafeCallbackUrl("/\\evil.example")).toBe("/dashboard");
+    expect(getSafeCallbackUrl("javascript:alert(1)")).toBe("/dashboard");
+  });
+
+  it("does not loop back to the sign-in page", () => {
+    expect(getSafeCallbackUrl("/sign-in?error=x")).toBe("/dashboard");
+  });
+});
 
 describe("getRequiredRole", () => {
   it("requires ADMIN for the admin area", () => {

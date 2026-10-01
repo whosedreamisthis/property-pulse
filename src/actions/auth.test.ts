@@ -1,13 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { AuthError, CredentialsSignin } from "next-auth";
+import { signIn } from "@/auth";
 import { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
 import { hashPassword } from "@/lib/password";
-import { registerUser } from "@/actions/auth";
+import { registerUser, signInWithCredentials } from "@/actions/auth";
 
+vi.mock("@/auth", () => ({ signIn: vi.fn(), signOut: vi.fn() }));
 vi.mock("@/lib/db", () => ({
   db: { user: { findUnique: vi.fn(), create: vi.fn() } },
 }));
 vi.mock("@/lib/password", () => ({ hashPassword: vi.fn() }));
+
+const mockSignIn = vi.mocked(signIn);
 
 const findUnique = vi.mocked(db.user.findUnique);
 const create = vi.mocked(db.user.create);
@@ -115,5 +120,62 @@ describe("registerUser", () => {
   it("never returns the password hash", async () => {
     const result = await registerUser(validInput);
     expect(JSON.stringify(result)).not.toContain("hashed-password");
+  });
+});
+
+describe("signInWithCredentials", () => {
+  const credentials = { email: " Riley@Example.com ", password: "Password123!" };
+
+  it("signs in with the normalized email and a safe callback path", async () => {
+    await signInWithCredentials(credentials, "http://localhost:3000/admin");
+
+    expect(mockSignIn).toHaveBeenCalledWith("credentials", {
+      email: "riley@example.com",
+      password: "Password123!",
+      redirectTo: "/admin",
+    });
+  });
+
+  it("defaults the redirect to /dashboard", async () => {
+    await signInWithCredentials(credentials);
+
+    expect(mockSignIn).toHaveBeenCalledWith(
+      "credentials",
+      expect.objectContaining({ redirectTo: "/dashboard" }),
+    );
+  });
+
+  it("returns field errors for invalid input without calling signIn", async () => {
+    const result = await signInWithCredentials({ email: "nope", password: "" });
+
+    expect(result.success).toBe(false);
+    expect(result.fieldErrors?.email).toEqual(["Enter a valid email address"]);
+    expect(result.fieldErrors?.password).toEqual(["Password is required"]);
+    expect(mockSignIn).not.toHaveBeenCalled();
+  });
+
+  it("returns the generic invalid-credentials error on a failed sign-in", async () => {
+    mockSignIn.mockRejectedValue(new CredentialsSignin());
+
+    await expect(signInWithCredentials(credentials)).resolves.toEqual({
+      success: false,
+      error: "Invalid email or password",
+    });
+  });
+
+  it("returns a generic error for other auth errors", async () => {
+    mockSignIn.mockRejectedValue(new AuthError("adapter failed"));
+
+    await expect(signInWithCredentials(credentials)).resolves.toEqual({
+      success: false,
+      error: "Something went wrong. Please try again.",
+    });
+  });
+
+  it("rethrows non-auth errors such as Next's success redirect", async () => {
+    const redirect = new Error("NEXT_REDIRECT");
+    mockSignIn.mockRejectedValue(redirect);
+
+    await expect(signInWithCredentials(credentials)).rejects.toBe(redirect);
   });
 });

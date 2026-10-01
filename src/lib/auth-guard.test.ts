@@ -59,7 +59,7 @@ describe("requireRole", () => {
   it("redirects to sign-in when signed out", async () => {
     mockAuth.mockResolvedValue(null);
     await expect(requireRole("ADMIN")).rejects.toThrow(
-      "REDIRECT:/api/auth/signin",
+      "REDIRECT:/sign-in",
     );
   });
 

@@ -1,7 +1,7 @@
 import type { NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
-import { resolveRouteAccess } from "@/lib/routes";
+import { SIGN_IN_PATH, resolveRouteAccess } from "@/lib/routes";
 
 // Fields for NextAuth's default sign-in form; shared with the real provider in src/auth.ts.
 export const CREDENTIAL_FIELDS = {
@@ -16,7 +16,9 @@ export default {
     // Placeholder: the real bcrypt check is in src/auth.ts, which the proxy never loads.
     Credentials({ credentials: CREDENTIAL_FIELDS, authorize: () => null }),
   ],
-  // Default NextAuth pages follow the OS theme; force light to match the app.
+  // Sign-in errors (e.g. OAuthAccountNotLinked) also land here as ?error=.
+  pages: { signIn: SIGN_IN_PATH },
+  // NextAuth's remaining built-in pages follow the OS theme; force light to match the app.
   theme: { colorScheme: "light" },
   callbacks: {
     // `user` is only present on sign-in; with the adapter it is the DB row, so role defaults to USER.

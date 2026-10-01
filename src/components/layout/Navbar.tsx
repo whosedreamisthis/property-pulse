@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { auth, signIn, signOut } from "@/auth";
+import { auth } from "@/auth";
+import UserMenu from "@/components/layout/UserMenu";
+import { SIGN_IN_PATH } from "@/lib/routes";
 
 export default async function Navbar() {
   const session = await auth();
@@ -21,35 +23,20 @@ export default async function Navbar() {
           <span className="text-2xl font-bold text-white">PropertyPulse</span>
         </Link>
 
-        {/* Minimal session toggle; the avatar menu replaces this in auth phase 3. */}
         {session?.user ? (
-          <form
-            action={async () => {
-              "use server";
-              await signOut({ redirectTo: "/" });
-            }}
-          >
-            <button
-              type="submit"
-              className="rounded-md bg-white px-4 py-2 text-sm font-semibold text-primary-700 hover:bg-primary-50"
-            >
-              Sign Out
-            </button>
-          </form>
+          <UserMenu
+            name={session.user.name}
+            email={session.user.email}
+            image={session.user.image}
+            role={session.user.role}
+          />
         ) : (
-          <form
-            action={async () => {
-              "use server";
-              await signIn(undefined, { redirectTo: "/dashboard" });
-            }}
+          <Link
+            href={SIGN_IN_PATH}
+            className="rounded-md bg-white px-4 py-2 text-sm font-semibold text-primary-700 hover:bg-primary-50"
           >
-            <button
-              type="submit"
-              className="rounded-md bg-white px-4 py-2 text-sm font-semibold text-primary-700 hover:bg-primary-50"
-            >
-              Sign In
-            </button>
-          </form>
+            Sign In
+          </Link>
         )}
       </nav>
     </header>

@@ -8,6 +8,33 @@ const SIGNED_IN_ROUTES = ["/dashboard", "/profile", "/favorites", "/inquiries"];
 
 export type RouteAccess = "allow" | "sign-in" | "wrong-role";
 
+export const SIGN_IN_PATH = "/sign-in";
+export const DEFAULT_SIGN_IN_REDIRECT = "/dashboard";
+
+// Reduces a callbackUrl to a path on this site, so sign-in can never redirect off-site.
+// The proxy sends absolute same-origin URLs; their origin is dropped.
+export function getSafeCallbackUrl(callbackUrl: string | null | undefined) {
+  if (!callbackUrl) return DEFAULT_SIGN_IN_REDIRECT;
+
+  const isRelativePath =
+    callbackUrl.startsWith("/") &&
+    !callbackUrl.startsWith("//") &&
+    !callbackUrl.startsWith("/\\");
+
+  try {
+    const url = isRelativePath
+      ? new URL(callbackUrl, "http://localhost")
+      : new URL(callbackUrl);
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      return DEFAULT_SIGN_IN_REDIRECT;
+    }
+    const path = `${url.pathname}${url.search}${url.hash}`;
+    return path.startsWith(SIGN_IN_PATH) ? DEFAULT_SIGN_IN_REDIRECT : path;
+  } catch {
+    return DEFAULT_SIGN_IN_REDIRECT;
+  }
+}
+
 function matchesPrefix(pathname: string, prefix: string) {
   return pathname === prefix || pathname.startsWith(`${prefix}/`);
 }

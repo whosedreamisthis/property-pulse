@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import type { Role } from "@/generated/prisma/enums";
+import { SIGN_IN_PATH } from "@/lib/routes";
 
-const SIGN_IN_PATH = "/api/auth/signin";
 
 export async function getCurrentUser() {
   const session = await auth();
