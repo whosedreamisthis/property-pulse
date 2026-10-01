@@ -15,6 +15,7 @@ Follow the blue + gray visual system in `@context/project-overview.md` section 9
 - Link to `/register`
 - Field-level validation errors
 - Generic error on failed credentials ("Invalid email or password")
+- Failed sign-in must not clear the form: the sign-in server action returns the error instead of redirecting, and the email stays filled in. Decide when phase 3 starts whether the password is kept too, or cleared with focus moved to it (the common convention)
 - Friendly message for `OAuthAccountNotLinked` ("This email is already registered with a password — sign in with email and password")
 - Honor `callbackUrl`; default redirect is `/dashboard`
 - Signed-in users visiting `/sign-in` are redirected to `/dashboard`

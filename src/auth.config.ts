@@ -1,10 +1,21 @@
 import type { NextAuthConfig } from "next-auth";
+import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import { resolveRouteAccess } from "@/lib/routes";
 
+// Fields for NextAuth's default sign-in form; shared with the real provider in src/auth.ts.
+export const CREDENTIAL_FIELDS = {
+  email: { label: "Email", type: "email" },
+  password: { label: "Password", type: "password" },
+};
+
 // Edge-safe config shared by the proxy and src/auth.ts. No adapter or Prisma imports here.
 export default {
-  providers: [Google],
+  providers: [
+    Google,
+    // Placeholder: the real bcrypt check is in src/auth.ts, which the proxy never loads.
+    Credentials({ credentials: CREDENTIAL_FIELDS, authorize: () => null }),
+  ],
   // Default NextAuth pages follow the OS theme; force light to match the app.
   theme: { colorScheme: "light" },
   callbacks: {
