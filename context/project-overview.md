@@ -52,15 +52,16 @@ The application should make it easy to:
 
 ### User roles
 
-The application has three roles:
+The application has two roles:
 
-- `RENTER`
-- `OWNER`
+- `USER` (default)
 - `ADMIN`
 
-A user should have one primary role.
+Renter and owner are activities, not roles. The same account can browse, favorite, and inquire about properties as a renter and also list properties as an owner, all from one dashboard. There is no "become an owner" step and no role choice at registration.
 
-Owners can also browse the public rental marketplace like renters, while admins have access to the admin area.
+Owner permissions come from owning a listing (`Property.ownerId`), checked on the server, never from a role.
+
+Admins are users too: they have their own regular dashboard and also have access to the admin area.
 
 ---
 
@@ -245,7 +246,7 @@ The owner should not expose sensitive account information publicly.
 
 ### F. Favorites
 
-Renters can favorite properties.
+Any signed-in user can favorite properties.
 
 Requirements:
 
@@ -261,13 +262,13 @@ A property can be deleted or unpublished without breaking the user's favorites p
 
 ### G. Rental Inquiries
 
-Renters can submit an inquiry for a property.
+Any signed-in user can submit an inquiry about a property they don't own.
 
 Inquiry fields:
 
 - Property
-- Renter
-- Owner
+- Renter (the user who sent the inquiry, stored as `Inquiry.renterId`)
+- Owner (derived from the property)
 - Message
 - Optional phone number
 - Status
@@ -281,64 +282,69 @@ CONTACTED
 ARCHIVED
 ```
 
-Owners can view inquiries for their properties.
+Users can view inquiries received on properties they own.
 
-Renters can view inquiries they submitted.
+Users can view inquiries they submitted.
 
-The owner can update inquiry status.
+The property's owner can update inquiry status.
 
-Never allow a renter to modify an inquiry belonging to another renter.
+Never allow a user to modify an inquiry they didn't send or didn't receive as the property's owner.
 
 ---
 
-### H. Renter Dashboard
+### H. User Dashboard
 
 Route:
 
 ```text
-/renter/dashboard
+/dashboard
 ```
 
-The renter dashboard should provide:
+Every signed-in user, including admins, has one dashboard that covers both renting and listing. It has these sections:
 
-- Saved properties
-- Recent inquiries
-- Inquiry status
-- Recently viewed properties
-- Profile information
+- **My favorites:** saved properties
+- **My inquiries:** inquiries the user sent, with their status
+- **My listings:** the user's own properties, with a **+ Add Property** action. If the user has no listings, show an empty-state prompt to list their first property.
+- **Inquiries received:** inquiries on the user's properties. Shown only when the user has listings.
 
 Suggested layout:
 
 ```text
 ┌──────────────────────────────────────────────────────────────┐
-│ Renter Dashboard                                             │
+│ Dashboard                                    [+ Add Property] │
 ├──────────────────────────────────────────────────────────────┤
 │                                                              │
-│  Saved Properties                                            │
+│  My Favorites                                                │
 │  ┌───────────┐ ┌───────────┐ ┌───────────┐                  │
 │  │ Property  │ │ Property  │ │ Property  │                  │
 │  │ Card      │ │ Card      │ │ Card      │                  │
 │  └───────────┘ └───────────┘ └───────────┘                  │
 │                                                              │
-│  Recent Inquiries                                            │
+│  My Inquiries                                                │
 │  ┌────────────────────────────────────────────────────────┐  │
 │  │ Downtown Apartment   NEW              View              │  │
 │  │ Townhouse             CONTACTED        View              │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  My Listings                                                 │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ Image │ Downtown Apartment │ $2,450 │ Published │ ... │  │
+│  │ Image │ Cedar House       │ $3,100 │ Draft     │ ... │  │
+│  └────────────────────────────────────────────────────────┘  │
+│    (no listings: "List your first property" [+ Add Property])│
+│                                                              │
+│  Inquiries Received          (only when the user has listings)│
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │ Cedar House   Jane D.   NEW              View           │  │
 │  └────────────────────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### I. Owner Dashboard
+### I. Listing Management
 
-Route:
-
-```text
-/owner/dashboard
-```
-
-Owners need a dedicated dashboard for managing their properties.
+Routes live under `/dashboard` (see section 8). Any user can manage their own listings; every action checks ownership on the server.
 
 Features:
 
@@ -353,7 +359,7 @@ Features:
 - Manage property images
 - Manage profile
 
-Dashboard statistics:
+Listing statistics (shown on `/dashboard/properties` when the user has listings):
 
 - Total properties
 - Published properties
@@ -361,31 +367,11 @@ Dashboard statistics:
 - Total inquiries
 - New inquiries
 
-Suggested layout:
-
-```text
-┌──────────────────────────────────────────────────────────────┐
-│ Owner Dashboard                              [+ Add Property] │
-├──────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌──────────┐  │
-│  │ Properties │ │ Published  │ │ Drafts     │ │ Inquiries│  │
-│  │     6      │ │     4      │ │     2      │ │    18    │  │
-│  └────────────┘ └────────────┘ └────────────┘ └──────────┘  │
-│                                                              │
-│  Your Properties                                             │
-│  ┌────────────────────────────────────────────────────────┐  │
-│  │ Image │ Downtown Apartment │ $2,450 │ Published │ ... │  │
-│  │ Image │ Cedar House       │ $3,100 │ Draft     │ ... │  │
-│  └────────────────────────────────────────────────────────┘  │
-└──────────────────────────────────────────────────────────────┘
-```
-
 ---
 
 ### J. Property Creation / Editing
 
-Owners use a form built with:
+Users create and edit their listings with a form built with:
 
 - `react-hook-form`
 - `zod`
@@ -429,7 +415,7 @@ Route:
 /admin
 ```
 
-Only users with the `ADMIN` role can access the admin area.
+Only users with the `ADMIN` role can access the admin area. Admins also keep their regular `/dashboard`.
 
 Admin features:
 
@@ -446,8 +432,7 @@ Admin features:
 Suggested statistics:
 
 - Total users
-- Total renters
-- Total owners
+- Users with listings
 - Total properties
 - Published properties
 - Pending / draft properties
@@ -578,7 +563,7 @@ Zod validation
   ↓
 Server Action
   ↓
-Auth / role check
+Auth + ownership check (admin role for admin actions)
   ↓
 Prisma
   ↓
@@ -682,11 +667,11 @@ erDiagram
 
 | Decision                               | Why                                                            |
 | -------------------------------------- | -------------------------------------------------------------- |
-| `User.role` enum                       | Simple role-based authorization for renter / owner / admin     |
+| `User.role` enum (`USER` / `ADMIN`)    | Only admin access needs a role; renting and listing don't      |
 | `Property.ownerId`                     | Every listing belongs to a specific owner                      |
 | `Property.status` enum                 | Separates drafts, published listings, and unpublished listings |
 | `Property.featured`                    | Allows admin-controlled featured listings                      |
-| `Favorite` join table                  | Many renters can favorite many properties                      |
+| `Favorite` join table                  | Many users can favorite many properties                        |
 | `Inquiry` references renter + property | Owners can retrieve inquiries for their listings               |
 | `PropertyImage` separate model         | Allows ordered image galleries                                 |
 | Decimal rent fields                    | Avoid floating-point currency errors                           |
@@ -710,8 +695,7 @@ datasource db {
 }
 
 enum Role {
-  RENTER
-  OWNER
+  USER
   ADMIN
 }
 
@@ -745,7 +729,7 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
-  role          Role     @default(RENTER)
+  role          Role     @default(USER)
 
   properties    Property[]
   favorites     Favorite[]
@@ -918,15 +902,14 @@ If the project uses a newer Prisma version with a generated client output and co
 | `/sign-in`                    | Sign in                                           |
 | `/register`                   | Create account                                    |
 | `/profile`                    | User profile                                      |
-| `/favorites`                  | Saved properties                                  |
-| `/inquiries`                  | Renter's inquiries                                |
-| `/renter/dashboard`           | Renter dashboard                                  |
-| `/owner/dashboard`            | Owner dashboard                                   |
-| `/owner/properties`           | Owner's properties                                |
-| `/owner/properties/new`       | Create property                                   |
-| `/owner/properties/[id]/edit` | Edit property                                     |
-| `/owner/inquiries`            | Inquiries for owner's properties                  |
-| `/admin`                      | Admin dashboard                                   |
+| `/favorites`                      | Saved properties                                  |
+| `/inquiries`                      | Inquiries the user sent                           |
+| `/dashboard`                      | User dashboard (any signed-in user, incl. admins) |
+| `/dashboard/properties`           | The user's own listings                           |
+| `/dashboard/properties/new`       | Create property                                   |
+| `/dashboard/properties/[id]/edit` | Edit property (owner only)                        |
+| `/dashboard/inquiries`            | Inquiries received on the user's properties       |
+| `/admin`                          | Admin dashboard (`ADMIN` only)                    |
 | `/admin/users`                | User management                                   |
 | `/admin/properties`           | Property management                               |
 | `/admin/inquiries`            | Inquiry management                                |
@@ -974,7 +957,7 @@ admin/
 Every mutation should:
 
 1. Authenticate the user.
-2. Check the user's role.
+2. Check the `ADMIN` role for admin actions.
 3. Validate input with Zod.
 4. Verify ownership where applicable.
 5. Perform the Prisma mutation.
@@ -1123,25 +1106,28 @@ The server should remain the source of truth for search results.
 
 ---
 
-### Owner UI
+### Dashboard UI
 
-Owner pages should use a dashboard layout with:
+`/dashboard` pages should use a dashboard layout with:
 
 - Sidebar navigation
 - Overview cards
 - Properties table/grid
-- Inquiry list
+- Inquiry lists (sent and received)
 - Primary "Add Property" action
 
 Suggested sidebar:
 
 ```text
-Owner
-──────────────
 Dashboard
-Properties
-Inquiries
+──────────────
+Overview
+My Listings
+Inquiries Received
+Favorites
+My Inquiries
 Profile
+Admin          (admins only)
 Sign out
 ```
 
@@ -1235,11 +1221,10 @@ Use shadcn/ui components where appropriate.
 
 - Never trust a client-supplied `userId`.
 - Always derive the current user from the authenticated session.
-- Check role server-side.
 - Check property ownership server-side.
-- Admin actions require the `ADMIN` role.
-- Owner property mutations require the authenticated user to own the property.
-- Renter inquiry creation requires an authenticated renter.
+- Admin actions require the `ADMIN` role, checked server-side.
+- Property mutations require the authenticated user to own the property. Never use a role for this.
+- Inquiry creation requires an authenticated user who doesn't own the property.
 
 ### Validation
 
@@ -1471,7 +1456,7 @@ Environment variables (Vercel → Settings → Environment Variables):
 ## 11. Open Questions
 
 - How should Vercel preview deployments handle the database: skip the database steps, use the Neon development branch, or use a Neon branch per preview?
-- Should owners require admin approval before their first listing is published?
+- Should a user's first listing require admin approval before it's published?
 - Should renters be able to message owners directly, or should all communication begin as inquiries?
 - Should properties support multiple rental units under one building?
 - Should availability support recurring availability?
@@ -1536,24 +1521,22 @@ Environment variables (Vercel → Settings → Environment Variables):
 - [ ] Responsive property cards
 - [ ] Empty / loading states
 
-### Renter
+### User dashboard
 
-- [ ] Renter dashboard
+- [ ] User dashboard
 - [ ] Favorites
 - [ ] Inquiry form
-- [ ] Inquiry history
+- [ ] Sent inquiry history
 - [ ] Profile
 
-### Owner
+### Listings
 
-- [ ] Owner dashboard
 - [ ] Property creation
 - [ ] Property editing
 - [ ] Property deletion
 - [ ] Publish/unpublish
 - [ ] Property image management
-- [ ] Inquiry management
-- [ ] Owner profile
+- [ ] Received inquiry management
 
 ### Admin
 
@@ -1582,7 +1565,7 @@ Environment variables (Vercel → Settings → Environment Variables):
 
 ## Guiding Principle
 
-Build the first version as a **clean, production-oriented rental marketplace**, not a collection of disconnected dashboards.
+Build the first version as a **clean, production-oriented rental marketplace**, not a collection of disconnected dashboards. One account rents and lists from one dashboard.
 
 The public property experience should be fast and simple.
 

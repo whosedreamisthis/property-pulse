@@ -2,16 +2,18 @@ import { describe, expect, it } from "vitest";
 import { getRequiredRole, resolveRouteAccess } from "@/lib/routes";
 
 describe("getRequiredRole", () => {
-  it("maps role-specific prefixes to their role", () => {
-    expect(getRequiredRole("/renter/dashboard")).toBe("RENTER");
-    expect(getRequiredRole("/owner/dashboard")).toBe("OWNER");
+  it("requires ADMIN for the admin area", () => {
     expect(getRequiredRole("/admin")).toBe("ADMIN");
     expect(getRequiredRole("/admin/users")).toBe("ADMIN");
   });
 
+  it("requires no specific role for the dashboard", () => {
+    expect(getRequiredRole("/dashboard")).toBeNull();
+    expect(getRequiredRole("/dashboard/properties/new")).toBeNull();
+  });
+
   it("does not match paths that only share a prefix string", () => {
     expect(getRequiredRole("/administrator")).toBeNull();
-    expect(getRequiredRole("/owners")).toBeNull();
   });
 });
 
@@ -24,8 +26,7 @@ describe("resolveRouteAccess", () => {
   it("requires sign-in for protected routes when signed out", () => {
     for (const path of [
       "/dashboard",
-      "/renter/dashboard",
-      "/owner/dashboard",
+      "/dashboard/properties",
       "/admin",
       "/profile",
       "/favorites",
@@ -35,20 +36,20 @@ describe("resolveRouteAccess", () => {
     }
   });
 
-  it("allows any signed-in role on shared signed-in routes", () => {
-    expect(resolveRouteAccess("/dashboard", "OWNER")).toBe("allow");
+  it("allows users and admins on the dashboard and signed-in routes", () => {
+    expect(resolveRouteAccess("/dashboard", "USER")).toBe("allow");
+    expect(resolveRouteAccess("/dashboard/inquiries", "USER")).toBe("allow");
+    expect(resolveRouteAccess("/dashboard", "ADMIN")).toBe("allow");
     expect(resolveRouteAccess("/profile", "ADMIN")).toBe("allow");
   });
 
-  it("allows a role on its own dashboard", () => {
-    expect(resolveRouteAccess("/renter/dashboard", "RENTER")).toBe("allow");
-    expect(resolveRouteAccess("/owner/dashboard", "OWNER")).toBe("allow");
+  it("allows admins in the admin area", () => {
     expect(resolveRouteAccess("/admin", "ADMIN")).toBe("allow");
+    expect(resolveRouteAccess("/admin/users", "ADMIN")).toBe("allow");
   });
 
-  it("flags the wrong role, including admins on other dashboards", () => {
-    expect(resolveRouteAccess("/owner/dashboard", "RENTER")).toBe("wrong-role");
-    expect(resolveRouteAccess("/admin", "OWNER")).toBe("wrong-role");
-    expect(resolveRouteAccess("/renter/dashboard", "ADMIN")).toBe("wrong-role");
+  it("flags regular users in the admin area", () => {
+    expect(resolveRouteAccess("/admin", "USER")).toBe("wrong-role");
+    expect(resolveRouteAccess("/admin/properties", "USER")).toBe("wrong-role");
   });
 });

@@ -23,13 +23,13 @@ function runAuthorized(pathname: string, role?: Session["user"]["role"]) {
 
 describe("jwt callback", () => {
   it("copies id and role from the user on sign-in", () => {
-    const token = runJwt({ sub: "user-1" }, { id: "user-1", role: "RENTER" });
-    expect(token).toMatchObject({ id: "user-1", role: "RENTER" });
+    const token = runJwt({ sub: "user-1" }, { id: "user-1", role: "USER" });
+    expect(token).toMatchObject({ id: "user-1", role: "USER" });
   });
 
   it("keeps the existing id and role on later requests without a user", () => {
-    const token = runJwt({ sub: "user-1", id: "user-1", role: "OWNER" });
-    expect(token).toMatchObject({ id: "user-1", role: "OWNER" });
+    const token = runJwt({ sub: "user-1", id: "user-1", role: "ADMIN" });
+    expect(token).toMatchObject({ id: "user-1", role: "ADMIN" });
   });
 });
 
@@ -57,15 +57,16 @@ describe("authorized callback", () => {
   });
 
   it("returns false for protected routes when signed out, so NextAuth redirects to sign-in", () => {
-    expect(runAuthorized("/renter/dashboard")).toBe(false);
+    expect(runAuthorized("/dashboard")).toBe(false);
   });
 
-  it("allows a role on its own dashboard", () => {
-    expect(runAuthorized("/owner/dashboard", "OWNER")).toBe(true);
+  it("allows any signed-in user on the dashboard", () => {
+    expect(runAuthorized("/dashboard", "USER")).toBe(true);
+    expect(runAuthorized("/dashboard", "ADMIN")).toBe(true);
   });
 
-  it("redirects the wrong role to /dashboard", () => {
-    const result = runAuthorized("/admin", "RENTER");
+  it("redirects a regular user away from /admin to /dashboard", () => {
+    const result = runAuthorized("/admin", "USER");
 
     expect(result).toBeInstanceOf(Response);
     expect((result as Response).headers.get("location")).toBe(

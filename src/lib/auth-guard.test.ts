@@ -27,10 +27,10 @@ beforeEach(() => {
 
 describe("getCurrentUser", () => {
   it("returns the session user", async () => {
-    mockAuth.mockResolvedValue(sessionFor("OWNER"));
+    mockAuth.mockResolvedValue(sessionFor("USER"));
     await expect(getCurrentUser()).resolves.toMatchObject({
       id: "user-1",
-      role: "OWNER",
+      role: "USER",
     });
   });
 
@@ -42,34 +42,34 @@ describe("getCurrentUser", () => {
 
 describe("requireRole", () => {
   it("returns the user when the role is allowed", async () => {
-    mockAuth.mockResolvedValue(sessionFor("RENTER"));
-    await expect(requireRole("RENTER")).resolves.toMatchObject({
-      role: "RENTER",
+    mockAuth.mockResolvedValue(sessionFor("ADMIN"));
+    await expect(requireRole("ADMIN")).resolves.toMatchObject({
+      role: "ADMIN",
     });
     expect(redirect).not.toHaveBeenCalled();
   });
 
   it("accepts any of several allowed roles", async () => {
     mockAuth.mockResolvedValue(sessionFor("ADMIN"));
-    await expect(requireRole("OWNER", "ADMIN")).resolves.toMatchObject({
+    await expect(requireRole("USER", "ADMIN")).resolves.toMatchObject({
       role: "ADMIN",
     });
   });
 
   it("redirects to sign-in when signed out", async () => {
     mockAuth.mockResolvedValue(null);
-    await expect(requireRole("RENTER")).rejects.toThrow(
+    await expect(requireRole("ADMIN")).rejects.toThrow(
       "REDIRECT:/api/auth/signin",
     );
   });
 
-  it("redirects to /dashboard when the role does not match", async () => {
-    mockAuth.mockResolvedValue(sessionFor("ADMIN"));
-    await expect(requireRole("OWNER")).rejects.toThrow("REDIRECT:/dashboard");
+  it("redirects a regular user away from admin-only pages", async () => {
+    mockAuth.mockResolvedValue(sessionFor("USER"));
+    await expect(requireRole("ADMIN")).rejects.toThrow("REDIRECT:/dashboard");
   });
 
   it("propagates auth failures", async () => {
     mockAuth.mockRejectedValue(new Error("JWT decode failed"));
-    await expect(requireRole("RENTER")).rejects.toThrow("JWT decode failed");
+    await expect(requireRole("ADMIN")).rejects.toThrow("JWT decode failed");
   });
 });

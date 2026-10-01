@@ -2,7 +2,7 @@
 
 ## Overview
 
-Add the Credentials provider for email/password sign-in, a `registerUser` server action, and a seed script that creates one demo user per role (admin, owner, renter). Builds on phase 1 (Prisma + Neon, NextAuth + Google, role-based dashboards). Sign-in is still tested on NextAuth's default page; custom UI comes in phase 3.
+Add the Credentials provider for email/password sign-in, a `registerUser` server action, and a seed script that creates demo users (one admin, two regular users). Builds on phase 1 (Prisma + Neon, NextAuth + Google, `USER`/`ADMIN` roles, single `/dashboard`). Sign-in is still tested on NextAuth's default page; custom UI comes in phase 3.
 
 ## Requirements
 
@@ -23,8 +23,7 @@ Add the Credentials provider for email/password sign-in, a `registerUser` server
 
 `registerUser` in `src/actions/auth.ts` (server action, not an API route — per the project overview).
 
-- Input: `name`, `email`, `password`, `confirmPassword`, `role`
-- `role` is limited to `RENTER` or `OWNER`; `ADMIN` can never be self-assigned. Validate this on the server — never trust the client value beyond that allow-list
+- Input: `name`, `email`, `password`, `confirmPassword`. There is no `role` input: every new user gets the schema default `USER`, and `ADMIN` can never be self-assigned. Ignore any extra `role` field the client sends
 - Validate with the shared Zod schema (email format, password min 8 chars, passwords match)
 - Lowercase and trim the email
 - Reject if a user with that email already exists (generic, user-friendly error)
@@ -37,19 +36,21 @@ Add the Credentials provider for email/password sign-in, a `registerUser` server
 `src/lib/validations/auth.ts`:
 
 - `signInSchema` - email, password
-- `registerSchema` - name, email, password, confirmPassword, role (`RENTER | OWNER`), with a `refine` for matching passwords
+- `registerSchema` - name, email, password, confirmPassword, with a `refine` for matching passwords (no `role`)
 
 Phase 3 forms will reuse these schemas with React Hook Form.
 
 ### Demo Users (Seed)
 
-Create `prisma/seed.ts` that upserts one demo user per role on the Neon **development** branch:
+Create `prisma/seed.ts` that upserts these demo users on the Neon **development** branch:
 
-| Role   | Name         | Email                      | Password        |
-| ------ | ------------ | -------------------------- | --------------- |
-| ADMIN  | Avery Admin  | `admin@propertypulse.test`  | `AdminDemo123!`  |
-| OWNER  | Olivia Owner | `owner@propertypulse.test`  | `OwnerDemo123!`  |
-| RENTER | Riley Renter | `renter@propertypulse.test` | `RenterDemo123!` |
+| Role  | Name         | Email                       | Password         |
+| ----- | ------------ | --------------------------- | ---------------- |
+| ADMIN | Avery Admin  | `admin@propertypulse.test`  | `AdminDemo123!`  |
+| USER  | Olivia Owner | `olivia@propertypulse.test` | `OliviaDemo123!` |
+| USER  | Riley Renter | `riley@propertypulse.test`  | `RileyDemo123!`  |
+
+- Olivia is the demo user who will have listings. Seeding her properties waits until the property features exist; this phase seeds users only
 
 - These are made-up demo credentials for local/dev testing only (`.test` is a reserved, non-routable domain)
 - Hash passwords with bcryptjs in the seed, same as registration
@@ -85,13 +86,12 @@ Credentials requires `session: { strategy: 'jwt' }`, which phase 1 already uses.
 
 ## Testing
 
-1. Unit tests for `registerUser`: success, duplicate email, mismatched passwords, invalid email, `role: "ADMIN"` rejected, DB failure
+1. Unit tests for `registerUser`: success (created with role `USER`), duplicate email, mismatched passwords, invalid email, an extra `role: "ADMIN"` field ignored, DB failure
 2. `npx prisma db seed` - three demo users exist on the dev branch with hashed passwords
 3. Re-run the seed - no duplicates, no errors
 4. Go to `/api/auth/signin` and sign in as each demo user:
-   - `admin@propertypulse.test` → `/dashboard` → `/admin`
-   - `owner@propertypulse.test` → `/dashboard` → `/owner/dashboard`
-   - `renter@propertypulse.test` → `/dashboard` → `/renter/dashboard`
+   - `admin@propertypulse.test` → `/dashboard`; `/admin` is also accessible
+   - `olivia@propertypulse.test` and `riley@propertypulse.test` → `/dashboard`; `/admin` redirects to `/dashboard`
 5. Wrong password and unknown email both fail with the same generic error
 6. Google sign-in still works
 7. `npm test` and `npm run build` pass
@@ -101,6 +101,7 @@ Credentials requires `session: { strategy: 'jwt' }`, which phase 1 already uses.
 - Register and sign-in pages (phase 3)
 - Email verification and password reset
 - Admin role management UI
+- Demo properties for Olivia (seeded with the property features)
 
 ## References
 

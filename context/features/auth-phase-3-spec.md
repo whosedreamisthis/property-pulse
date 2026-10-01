@@ -2,7 +2,7 @@
 
 ## Overview
 
-Replace NextAuth's default pages with custom `/sign-in` and `/register` pages, and replace the static "Sign In" button in the navbar with a user menu when signed in. Builds on phase 1 (Google, role dashboards) and phase 2 (credentials, `registerUser`, shared Zod schemas, demo users).
+Replace NextAuth's default pages with custom `/sign-in` and `/register` pages, and replace the static "Sign In" button in the navbar with a user menu when signed in. Builds on phase 1 (Google, single `/dashboard`, admin-only `/admin`) and phase 2 (credentials, `registerUser`, shared Zod schemas, demo users).
 
 Follow the blue + gray visual system in `@context/project-overview.md` section 9.
 
@@ -16,13 +16,12 @@ Follow the blue + gray visual system in `@context/project-overview.md` section 9
 - Field-level validation errors
 - Generic error on failed credentials ("Invalid email or password")
 - Friendly message for `OAuthAccountNotLinked` ("This email is already registered with a password — sign in with email and password")
-- Honor `callbackUrl`; default redirect is `/dashboard` (which routes by role)
+- Honor `callbackUrl`; default redirect is `/dashboard`
 - Signed-in users visiting `/sign-in` are redirected to `/dashboard`
 
 ### Register Page (`/register`)
 
-- Name, email, password, confirm password fields
-- Account type choice: "I'm looking to rent" (`RENTER`) / "I'm a property owner" (`OWNER`); default `RENTER`. No admin option
+- Name, email, password, confirm password fields. No account-type or role choice: every account can rent and list
 - React Hook Form + `registerSchema` from phase 2
 - Submits to the `registerUser` server action
 - Shows field errors and server errors returned by the action
@@ -39,10 +38,11 @@ Follow the blue + gray visual system in `@context/project-overview.md` section 9
 
 Update `src/components/layout/Navbar.tsx`:
 
-- Signed out: "Sign In" links to `/sign-in` (replaces the current non-functional button)
+- Signed out: "Sign In" links to `/sign-in` (replaces the phase 1 sign-in/sign-out toggle)
 - Signed in: avatar button that opens a dropdown with:
   - User name and email
-  - Dashboard → `/dashboard` (routes to the role dashboard)
+  - Dashboard → `/dashboard`
+  - Admin → `/admin` (admins only; hide the link for everyone else, but `/admin` still enforces the role on the server)
   - Profile → `/profile`
   - Sign out
 - Keep the Navbar a Server Component that reads the session; put only the dropdown in a small client component
@@ -81,16 +81,16 @@ Update `src/components/layout/Navbar.tsx`:
 ## Testing
 
 1. `/sign-in` renders the custom page
-2. Sign in as each demo user from phase 2 — lands on the correct role dashboard:
-   - `admin@propertypulse.test` / `AdminDemo123!` → `/admin`
-   - `owner@propertypulse.test` / `OwnerDemo123!` → `/owner/dashboard`
-   - `renter@propertypulse.test` / `RenterDemo123!` → `/renter/dashboard`
+2. Sign in as each demo user from phase 2 — all land on `/dashboard`:
+   - `admin@propertypulse.test` / `AdminDemo123!` → menu shows Dashboard and Admin
+   - `olivia@propertypulse.test` / `OliviaDemo123!` → menu shows Dashboard only
+   - `riley@propertypulse.test` / `RileyDemo123!` → menu shows Dashboard only
 3. Wrong password shows the generic error
 4. Sign in with Google works and shows the Google avatar
 5. Credentials users show initials in the navbar
 6. Avatar dropdown opens with mouse and keyboard; Dashboard and Profile links work
 7. Sign out returns to `/` and the navbar shows "Sign In"
-8. `/register` as owner → redirected to `/sign-in` → sign in → `/owner/dashboard`
+8. `/register` → redirected to `/sign-in` → sign in → `/dashboard` (new account has role `USER`)
 9. `/register` with an existing email shows an error
 10. Visiting `/admin` signed out → `/sign-in?callbackUrl=/admin`
 11. `npm test` and `npm run build` pass

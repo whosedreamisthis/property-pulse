@@ -1,14 +1,6 @@
 import type { Role } from "@/generated/prisma/enums";
 
-export const ROLE_DASHBOARDS: Record<Role, string> = {
-  RENTER: "/renter/dashboard",
-  OWNER: "/owner/dashboard",
-  ADMIN: "/admin",
-};
-
 const ROLE_ROUTE_PREFIXES: [prefix: string, role: Role][] = [
-  ["/renter", "RENTER"],
-  ["/owner", "OWNER"],
   ["/admin", "ADMIN"],
 ];
 

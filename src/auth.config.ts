@@ -8,7 +8,7 @@ export default {
   // Default NextAuth pages follow the OS theme; force light to match the app.
   theme: { colorScheme: "light" },
   callbacks: {
-    // `user` is only present on sign-in; with the adapter it is the DB row, so role defaults to RENTER.
+    // `user` is only present on sign-in; with the adapter it is the DB row, so role defaults to USER.
     jwt({ token, user }) {
       if (user?.id) {
         token.id = user.id;

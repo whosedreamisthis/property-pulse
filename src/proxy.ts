@@ -8,9 +8,7 @@ export const proxy = auth;
 
 export const config = {
   matcher: [
-    "/dashboard",
-    "/renter/:path*",
-    "/owner/:path*",
+    "/dashboard/:path*",
     "/admin/:path*",
     "/profile",
     "/favorites",
